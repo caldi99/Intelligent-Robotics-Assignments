@@ -11,11 +11,11 @@ In order to **solve** the assigment we managed to create 3 **packages** :
 * `navigation_commands_ros` : for moving the robot in narrow passages with the usage of `/mobile_base_controller/cmd_vel`.
 
 ## Group Members
-| Surname       | Name          | ID            |
-| ------------- | ------------- | ------------- |
-| Barusco       | Manuel        | 2053083       |
-| Caldivezzi    | Francesco	    | 2037893       |
-| Rampon        | Riccardo      | 2052416       |
+| Surname       | Name          |
+| ------------- | ------------- |
+| Barusco       | Manuel        |
+| Caldivezzi    | Francesco	    |
+| Rampon        | Riccardo      |
 
 ## Execution Instructions
 In ordert to execute the code you need to :

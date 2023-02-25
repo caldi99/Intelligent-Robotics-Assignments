@@ -17,11 +17,11 @@ In order to **solve** the assigment we managed to create 6 **packages** :
 * `solution` : is the package that manage the execution of the overall nodes for solving the assigment.
 
 ## Group Members
-| Surname       | Name          | ID            |
-| ------------- | ------------- | ------------- |
-| Barusco       | Manuel        | 2053083       |
-| Caldivezzi    | Francesco	    | 2037893       |
-| Rampon        | Riccardo      | 2052416       |
+| Surname       | Name          |
+| ------------- | ------------- |
+| Barusco       | Manuel        |
+| Caldivezzi    | Francesco	    |
+| Rampon        | Riccardo      |
 
 ## Execution Instructions
 In order to execute the code you need to :
