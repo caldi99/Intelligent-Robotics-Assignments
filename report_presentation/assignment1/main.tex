@@ -1,0 +1,51 @@
+\documentclass{article}
+
+% ------------------------------------------------------
+% PACKAGES
+% ------------------------------------------------------
+\usepackage{graphicx}
+
+\usepackage{mathtools}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{etoolbox}
+\usepackage{multirow}
+\patchcmd{\thebibliography}{\section*{\refname}}{}{}{}
+\usepackage[labelformat=empty]{caption}
+% ------------------------------------------------------
+% DIMENSIONS OF THE PAGES
+% ------------------------------------------------------
+\geometry{
+ a4paper,
+ total={190mm,257mm},
+ left = 30mm,
+ right = 30mm,
+ top = 25mm,
+ bottom = 25mm
+}
+
+
+
+\begin{document}
+\input{titlepage.tex}
+\tableofcontents\newpage
+% ------------------------------------------------------
+% NO IDENTATION
+% ------------------------------------------------------
+\setlength{\parindent}{0pt}
+
+% ------------------------------------------------------
+% CHAPTERS
+% ------------------------------------------------------
+
+\input{chapters/introduction}
+\input{chapters/code_structure.tex}
+\input{chapters/detection.tex}
+\input{chapters/narrow_passages.tex}
+\input{chapters/references.tex}
+\end{document}

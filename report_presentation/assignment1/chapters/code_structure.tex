@@ -1,0 +1,27 @@
+\section{Code Structure}
+The structure of our code is based on a simple action client-server architecture where the client sends the goal to the server and the server does all the tasks. 
+The main components that we developed are:
+\begin{itemize}
+    \item the Action Message (MoveDetectAction)
+    \item the Action Client (TiagoClient)
+    \item the Action Server (TiagoServer)
+\end{itemize}
+
+\subsection{Action Message (MoveDetectAction)}
+We developed a custom action message with the following components:
+\begin{itemize}
+    \item Goal: field composed by three float64 variables that are the x,y coordinates of the final pose of the robot and the orientation w.r.t. the Z axis of the robot. All these three coordinates are based on the map reference frame. 
+    \item Feedback: a uint8 variable with the following meaning for every value: 0 if the robot is moving, 1 if the robot is arrived to the final pose, 2 if is scanning, -1 if an error occurred in the navigation, -2 if an error occurred in the detection. 
+    \item Result: a geometry\_msgs/PoseArray variable with the coordinates w.r.t the Robot reference frame of the detected obstacles in the final pose. 
+\end{itemize}
+
+\subsection{Action Client (TiagoClient)}
+We developed a custom action client that simply sent the goal (coordinates of the final pose) to the robot. The coordinates that are sent are passed to the client from the user by using the command line. The client then received updates from the TiagoServer about the status of the task.
+
+\subsection{Action Server (TiagoServer)}
+We developed a custom action server that managed all the tasks and that controls the Robot. This server is actually a proxy because it contains an action client that is used to communicate to the move\_base action server when it is needed. In fact this server has the following behaviour: 
+\begin{itemize}
+    \item It receives the goal from the TiagoClient and it updates it with the MoveDetectAction Feeback messages. 
+    \item It moves the Robot to the final position by using the navigation stack (First task of the assigment) or by using our Narrow Passage control law for moving in the corridor and then the navigation stack when the robot is outside the corridor.
+    \item It does the detection of the moving obstacles when the robot reaches the final pose. 
+\end{itemize}

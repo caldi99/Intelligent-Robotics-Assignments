@@ -1,0 +1,175 @@
+\section{Packages}
+In this section we are going to first describe the main structure of each package, and then what each package does, what it contains and the implementation choices made.
+\subsection{Package Structure}
+We have used mainly two structures for the packages :
+\begin{enumerate}    
+    \item \textbf{"Implementation and Node Package"}: this package structure is used to contain, as suggested by the name, the code i.e. classes, node implementations and declarations (files ".cpp" and ".h").
+        \newline
+        \begin{minipage}{2cm}
+        \dirtree{%
+        .1 package\_name.
+        .2 include.
+        .3 package\_name.
+        .4 constants.
+        .5 constants.h.
+        .4 functionality\_name.
+        .2 src.
+        .3 functionality\_name.
+        .2 CMakeLists.txt.
+        .2 package.xml.
+        }
+        \end{minipage}        
+    \item \textbf{"Message Package"} : this package structure is used to contain, as suggested by the name, the messages, actions and services of the \textbf{package\_name} 's package.
+        \newline
+        \begin{minipage}{2cm}
+        \dirtree{%
+        .1 package\_name\_msgs.
+        .2 action.
+        .2 msg.
+        .2 srv.
+        .2 CMakeLists.txt.
+        .2 package.xml.
+        }
+        \end{minipage}     
+\end{enumerate}
+% ----------------------------------------------------------------------------------
+% DETECTION PACKAGE
+% ----------------------------------------------------------------------------------
+\subsection{detection package}
+The \textbf{detection} package contains everything concerning the detection of the objects of interest in the task, such as the collision objects in the table, the colored objects and the colored cylinders. This package is divided into five parts:
+\begin{enumerate}
+    \item \textbf{obstacle\_extractor}, that includes all the components useful for the detection of walls and cylindrical obstacles using the laser\_scan measurements. This part was developed during the Assignment 1. 
+    \item \textbf{pose\_table\_detector}, that includes all the components useful for the detection and recognition of the colored cylinders. This part starts from the cylinder detections of the obstacle\_extractor part and choose the correct cylinder where TIAGo has to place the picked-object. 
+    \item \textbf{poses\_detection}, that includes all the components useful for the April Tags poses detection. The poses are detected using the ROS April Tag detection package provided by ROS and are transformed from the camera reference frame (\textbf{xtion\_rgb\_optical\_frame}) to the \textbf{base\_link} frame with the utilities of the poses\_transformer part (following point).  
+    \item \textbf{poses\_transformer}, that includes all the components useful for transforming the April Tags poses from the camera reference frame (\textbf{xtion\_rgb\_optical\_frame}) to the \textbf{base\_link} reference frame using the TF package provided by ROS.  
+    \item \textbf{table\_objects\_detection}, that includes all the components that are useful for the table detection and for the detection of the colored and collision objects that are present on it. This part gives all the directives to the head\_movement part of the manipulation package (see the section 2.4 of the report) in order to move the head in the correct way. 
+\end{enumerate}
+
+In particular:
+\begin{enumerate}
+    \item \textbf{obstacle\_extractor} contains :
+    \begin{itemize}
+        \item \textbf{obstacle\_extractor\_server.cpp} and \textbf{obstacle\_extractor\_server.h} that defines a service server that detects circles i.e. position (x and y) and radius, given the laser range finder data, in the \textbf{base\_laser\_link} reference frame. Those circles are published through the topic \textbf{/obstacle\_extractor};
+        \item \textbf{obstacle\_extractor\_node.cpp} which is the node that instantiate and start the service server previously defined;
+    \end{itemize}
+    \item \textbf{pose\_table\_detector} contains :
+    \begin{itemize}
+        \item \textbf{pose\_table\_detector\_server.cpp} and \textbf{pose\_table\_detector\_server.h} that defines a service server that is used only for solving the extra point of the Assigment and that computes the pose of the table where the picked object must be placed by analyzing a frame captured with the camera and understanding on which place-table to go given the color of the picked object;
+        \item \textbf{pose\_table\_detector\_node.cpp} which is the node that instantiate and start the service server previously defined;
+    \end{itemize}
+    \item \textbf{poses\_detection} contains: 
+    \begin{itemize}
+        \item \textbf{poses\_detection\_publisher.cpp} and \textbf{poses\_detection\_publisher.h} that define a publisher that publishes in the topic \textbf{/table\_objects\_detection} all the April Tags poses already transformed, thanks to the \textbf{poses\_transformer} part tools, to the base\_link frame with the relative April Tag id;
+        \item \textbf{poses\_poses\_detection\_node.cpp} which is the node that instantiate and start the publisher previously defined;
+    \end{itemize}
+    \item \textbf{poses\_transformer} contains: 
+    \begin{itemize}
+        \item \textbf{poses\_transformer\_server.cpp} and \textbf{poses\_transformer\_server.h} that define a service server that transform a given pose (in the request message) from a given reference frame to another reference frame, both specified in the request;
+        \item \textbf{poses\_poses\_detection\_node.cpp} which is the node that instantiate and start the service server previously defined;
+    \end{itemize}
+    \item \textbf{table\_objects\_detection} contains: 
+    \begin{itemize}
+        \item \textbf{table\_objects\_detection\_server.cpp} and \textbf{table\_objects\_detection\_server.h} that define an action server that detect the table and the colored and collision objects on the table. The implementation of this server is the following. First, it detects the table by tracking its color from the images acquired from the TIAGo camera, then, when the table is well detected and pointed from the TIAGo camera, it points the head toward the colored object (by searching its color) in order to acquire the April Tag pose of the tag placed on the object, and then start to search and track all the others April Tags that are placed on the collision objects present on the table. 
+        \item \textbf{table\_objects\_detection\_node.cpp} which is the node that instantiate and start the action server previously defined;
+    \end{itemize}
+\end{enumerate}
+
+% ----------------------------------------------------------------------------------
+% DETECTION_MSGS PACKAGE
+% ----------------------------------------------------------------------------------
+\subsection{detection\_msgs package}
+\textbf{detection\_msgs package} contains all the messages that are used in the components previously defined. In particular it contains:
+\begin{itemize}
+    \item \textbf{Detection.msg} simple message that contains a geometry\_msgs/Pose field and an integer id associated to the pose. This message is used for managing an April Tag detection pose that is transformed from the camera reference frame to the base\_link reference frame in order to save the transformed pose and also the id of the April Tag pose. 
+    \item \textbf{Detections.msg} simple message that contains an Array of \textbf{Detection} messages. This message is used for managing all the April Tags detections, all transformed in the base\_link reference frame and with their April Tag id associated, in the \textbf{table\_objects\_detection\_server}. 
+    \item \textbf{Transform.srv} service message that is used with the \textbf{poses\_transformer\_server}. The request contains the source and target reference frames names and the pose that has to be transformed from the source to the target reference frame. The transformed pose is returned in the service response.
+     \item \textbf{ObjectsDetection.action} action message that is used with the \\ \textbf{table\_objects\_detection\_server}. The request contains the colorID that TIAGo has to pick (and obviously correctly detect) from the table, the response contains a \textbf{Detections} field that contains the poses, already transformed to the base\_link reference frame, of the detected April Tags on the table. To be more precise, the main purpose of this server is to correctly detect the table and then the colored object April Tag that is on the table, but during the detection is also detecting others April Tags, so it is returning also those poses because are the collision objects poses, that are used during the pick phase. The feedback contains an integer that indicates the status of the action execution: 0 when the robot is searching for the table, 1 when it is searching for the colored object tag, 2 when it is searching for other tags (collision objects). 
+     \item \textbf{Circle.msg} simple message that contains 3 floating point numbers used for maintaining the x, y, coordinates of a circle and the radius of a circle.
+     \item \textbf{Circles.srv} service message that is used with the \textbf{obstacle\_extractor\_server}. The request contains the scan data while the response contains an array of the circles detected.
+     \item \textbf{PoseTableDetector.srv} service message that is used with the \textbf{pose\_table\_detector\_server}. The request contains an array of circles that corresponds to the positions of the cylindrical table w.r.t. to the map reference frame as well as the id of the object to place. The output is the circle that correspond to the place cylindrical table corresponding to the given id.
+\end{itemize}
+% ----------------------------------------------------------------------------------
+% MANIPULATION PACKAGE
+% ----------------------------------------------------------------------------------
+\subsection{manipulation package}
+\textbf{manipulation} is the package that contains everything concerning the manipulation of the TIAGo robot. In our implementation it is divided into three parts: 
+\begin{enumerate}
+    \item \textbf{head\_movement}, that includes all the components useful for the movement of the TIAGo's head;
+    \item \textbf{pick\_place}, that includes all the components useful to complete the pick and place process;
+    \item \textbf{torso\_lifter}, that includes all the components useful to lift the TIAGo's torso, helpful during the detection phase;
+\end{enumerate}
+In particular:
+\begin{enumerate}
+    \item \textbf{head\_movement} contains:
+    \begin{itemize}
+        \item \textbf{head\_movement\_node.cpp} which is the node that implements a ServiceServer that advertise the topic \textbf{/head\_movement};
+        \item \textbf{head\_movement\_server.cpp} and \textbf{head\_movement\_server.h} which are respectively the implementation and the declaration files of the ServiceServer cited previously, i.e. the HeadMovementServer class perform the movement of TIAGo's head, and the movement of TIAGo's head with an image pixel pointing by using the control\_msgs::PointHeadAction client;         
+    \end{itemize}
+    \item \textbf{pick\_place} contains:
+    \begin{itemize}
+        \item \textbf{pick\_place\_node.cpp} which is the node that implements an ActionServer that waits that a client sends to it the goal through the topic \textbf{/pick\_place};
+        \item \textbf{pick\_place\_server.cpp} and \textbf{pick\_place\_server.h} which are respectively the implementation and the declaration files of the ActionServer cited previously, i.e the PickPlaceServer class that perform the pick and place procedure, after the construction of properly Planning Scene;       
+    \end{itemize}
+    \item \textbf{torso\_lifter} contains:
+    \begin{itemize}
+        \item \textbf{torso\_lifter\_node.cpp} which is the node that implements a ServiceServer that advertise the topic \textbf{/torso\_lifter};
+        \item \textbf{torso\_lifter\_server.cpp} and \textbf{torso\_lifter\_server.h} which are respectively the implementation and the declaration file of the ServiceServer cited previously, i.e. the TorsoLifterServer class that performs TIAGo's torso lift by going to properly set the values of the joint variables regarding the torso;        
+    \end{itemize}
+\end{enumerate}
+% ----------------------------------------------------------------------------------
+% MANIPULATION_MSGS PACKAGE
+% ----------------------------------------------------------------------------------
+\subsection{manipulation\_msgs package}
+\textbf{manipulation\_msgs package} contains :
+\begin{itemize}
+    \item \textbf{HeadMovement.srv} which is the Service message used to make a request to the HeadMovementServer (of manipulation package) and providing a response;
+     \item \textbf{PickPlace.action} which is the Action message used for requesting a goal to the PickPlaceServer (of manipulation package);
+     \item \textbf{TorsoLifter.srv} which is the Service message used to make a request to the TorsoLifterServer (of manipulation package) and providing a response;
+\end{itemize}
+% ----------------------------------------------------------------------------------
+% NAVIGATION_AUTOMATIC_ROS PACKAGE
+% ----------------------------------------------------------------------------------
+\subsection{navigation\_automatic\_ros package}
+\textbf{navigation\_automatic\_ros} is the package that was developed during the Assignment 1 and reused here to move the robot around.
+\newline
+In particular it contains :
+\begin{itemize}
+    \item \textbf{tiago\_server\_node.cpp} which is the node that implements an ActionServer that waits that a client sends to it a goal through the topic \textbf{/tiago\_server}.
+    \item \textbf{tiago\_server.cpp} and \textbf{tiago\_server.h} which are the implementation file and declaration file of the ActionServer cited previously i.e. TiagoServer class, that actually act as a proxy, because it accepts goals from clients and, use inside of it an ActionClient to send a goal to the MoveBase ActionServer through the topic \textbf{/move\_base}.
+    \item \textbf{MoveDetect.action} which is the Action message used for requesting a goal to the TiagoServer.
+\end{itemize}
+Notice that, this package do not satisfy the structure used for the package previously mentioned.
+% ----------------------------------------------------------------------------------
+% SOLUTION PACKAGE
+% ----------------------------------------------------------------------------------
+\subsection{solution package}
+\textbf{solution} is the package that contains the clients for connecting to the servers of the various packages as well as the main files and launch files to run the solution in the no-extra point version and extra-point. 
+So, the content, divided for which package will each file interacts to is :
+\begin{itemize}
+    \item For \textbf{detection} package :
+    \begin{itemize}
+        \item \textbf{obstacle\_extractor\_client.h} and \textbf{obstacle\_extractor\_client.cpp} which are respectively the declaration and implementation files of the ObstacleExtractorClient class which is a ServiceClient that is used to send a request through the topic \textbf{/obstacle\_extractor} to the corresponding server in order to obtain the obstacles detection (cylinder obstacles and walls); 
+        \item \textbf{pose\_table\_detector\_client.h} and \textbf{pose\_table\_detector\_client.cpp} which are respectively the declaration and implementation files of the PoseTableDetectorClient class which is a ServiceClient that is used to send a request through the topic \textbf{/pose\_table\_detector} to the corresponding server in order to obtain the pose of the correct cylinder where to pose the colored object;
+        \item \textbf{poses\_transformer\_client.h} and \textbf{poses\_transformer\_client.cpp} which are respectively the declaration and implementation files of the PosesTransformerClient class which is a ServiceClient that is used to send a request through the topic \textbf{/poses\_transformer} to the corresponding server in order to transform the pose provided in the service request from a given reference frame to another (provided in the request);
+        \item \textbf{table\_objects\_detection\_client.h} and \textbf{table\_objects\_detection\_client.cpp} which are respectively the declaration and implementation files of the TableObjectsDetectionClient class which is an ActionClient that is used to send a request through the topic \textbf{/table\_objects\_detection} to the corresponding server in order to obtain the poses of the colored object and collision objects on the table (w.r.t. base\_link frame);  
+    \end{itemize}
+    \item For \textbf{manipulation} package :
+    \begin{itemize}
+        \item \textbf{head\_movement\_client.h} and \textbf{head\_movement\_client.cpp} which are respectively the declaration and implementation files of the HeadMovementClient class which is a ServiceClient that is used to send a request through the topic \textbf{/head\_movement} to the corresponding server in order to move the TIAGo's head;
+        \item \textbf{pick\_place\_client.h} and \textbf{pick\_place\_client.cpp} which are respectively the declaration and implementation files of the PickPlaceClient class which is an ActionClient that is used to send a goal through the topic \textbf{/pick\_place} to the corresponding server in order to perform a pick or place operation;
+        \item \textbf{torso\_lifter\_client.h} and \textbf{torso\_lifter\_client.cpp}  which are respectively the declaration and implementation files of the TorsoLiferClient class which is a ServiceClient that is used to send a request through the topic \textbf{/torso\_lifter} to the corresponding server in order to lift up or down the TIAGo's torso;
+    \end{itemize}
+    \item For \textbf{navigation\_automatic\_ros} package :
+    \begin{itemize}
+        \item \textbf{tiago\_client\_client.h} and \textbf{tiago\_client\_client.cpp} which are respectively the declaration and implementation files of the TiagoClient class which is an ActionClient that is used to send a goal through the topic \textbf{/tiago\_server} to the corresponding server in order to move TIAGo robot in a certain position;
+    \end{itemize}
+    \item For \textbf{tiago\_iaslab\_simulation} package :    
+    \begin{itemize}
+        \item \textbf{human\_client\_client.h} and \textbf{human\_client\_client.cpp} which are respectively the declaration and implementation files of the HumanClient class which is a ServiceClient that is used to send a request through the topic \textbf{/human\_objects\_srv} to the corresponding server in order to move obtain the randomized order of the list of ids that must be picked;
+    \end{itemize}
+\end{itemize}
+While the main files and the corresponding files for launching the execution of the two different solution (no-point extra and point-extra) are :
+\begin{itemize}
+    \item \textbf{main\_no\_extra.cpp} and \textbf{main\_extra.cpp} which are the two executable files that contains the logic on how the robots moves in terms of navigation and manipulation point of view. In fact, to do so, inside of those files there are a lot of instances of the previously mentioned clients that contact the opportune server to perform a task.
+    \item \textbf{no\_extra.launch} and \textbf{extra.launch} which are the two launch files that are used to execute the nodes of the packages previously mentioned.
+\end{itemize}
