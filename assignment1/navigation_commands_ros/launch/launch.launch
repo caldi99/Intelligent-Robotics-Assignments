@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+    <node name ="main_client" pkg="navigation_commands_ros" type="main_client" />
+    <node name ="main_server" pkg="navigation_commands_ros" type="main_server" />
+</launch>

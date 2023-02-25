@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+    <node name ="head_movement_node" pkg="manipulation" type="head_movement_node" output="screen"/>
+    <node name ="torso_lifter_node" pkg="manipulation" type="torso_lifter_node" output="screen"/>
+    <node name ="pick_place_node" pkg="manipulation" type="pick_place_node" output="screen"/>
+    <node name ="human_node" pkg="tiago_iaslab_simulation" type="human_node" launch-prefix="bash -c 'sleep 10; $0 $@' "  output="screen"/>
+    <node name ="tiago_node" pkg="navigation_automatic_ros" type="tiago_node" launch-prefix="bash -c 'sleep 10; $0 $@' " output="screen"/>
+    <node name ="poses_transformer_node" pkg="detection" type="poses_transformer_node" launch-prefix="bash -c 'sleep 10; $0 $@' " output="screen"/>
+    <node name ="poses_detection_node" pkg="detection" type="poses_detection_node" launch-prefix="bash -c 'sleep 10; $0 $@' " output="screen"/>
+    <node name ="obstacle_extractor_node" pkg="detection" type="obstacle_extractor_node" launch-prefix="bash -c 'sleep 10; $0 $@' " output="screen"/>
+    <node name ="table_objects_detection_node" pkg="detection" type="table_objects_detection_node" launch-prefix="bash -c 'sleep 10; $0 $@' " output="screen"/>
+    <node name ="main_no_extra" pkg="solution" type="main_no_extra" launch-prefix="bash -c 'sleep 10; $0 $@' " output="screen"/>    
+</launch>
